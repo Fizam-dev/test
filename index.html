@@ -3,54 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demo Antaramuka Organisasi</title>
+    <title>Demo Organisasi 24</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
 
     <header class="header">
         <div class="logo">24</div>
-        <div class="menu-icon">&#9776;</div>
+        <div class="menu-icon" id="menuToggle">
+            <i class="fas fa-bars"></i>
+        </div>
     </header>
+
+    <nav class="sidebar" id="sidebarMenu">
+        <ul>
+            <li><a href="#"><i class="fas fa-home"></i> Utama</a></li>
+            <li><a href="#"><i class="fas fa-users"></i> Ahli</a></li>
+            <li><a href="#"><i class="fas fa-calendar-alt"></i> Acara</a></li>
+            <li><a href="#"><i class="fas fa-info-circle"></i> Mengenai Kami</a></li>
+            <li><a href="#"><i class="fas fa-envelope"></i> Hubungi</a></li>
+        </ul>
+    </nav>
+
 
     <section class="ketua-angkatan">
         <h1>Ketua Angkatan</h1>
-        <div class="carousel-container">
-            <div class="angkatan-card" id="ketuaCard">
-                <div class="card-overlay">
-                    <div class="overlay-text">D U D E</div>
+        <div class="carousel-wrapper">
+            <div class="carousel-inner" id="carouselInner">
                 </div>
-                <img src="WhatsApp.jpeg" alt="Ketua Angkatan" class="card-image">
-                <div class="arrow-indicator">
-                    <span class="down-arrow">&darr;</span>
-                </div>
+            <div class="carousel-nav">
+                <button class="carousel-button prev" id="carouselPrev"><i class="fas fa-chevron-left"></i></button>
+                <button class="carousel-button next" id="carouselNext"><i class="fas fa-chevron-right"></i></button>
             </div>
-
-            </div>
-        <div class="dots-indicator">
-            <span class="dot active"></span>
-            <span class="dot"></span>
         </div>
+        <div class="dots-indicator" id="carouselDots">
+            </div>
     </section>
 
     <section class="member-section">
         <h2>Member</h2>
-        </section>
+        <div class="member-grid">
+            <div class="member-card">
+                <img src="https://picsum.photos/id/10/300/400" alt="Member 1">
+                <div class="member-info">
+                    <p class="role">Ahli Jawatankuasa</p>
+                    <p class="name">Ahmad</p>
+                </div>
+            </div>
+            <div class="member-card">
+                <img src="https://picsum.photos/id/20/300/400" alt="Member 2">
+                <div class="member-info">
+                    <p class="role">Bendahari</p>
+                    <p class="name">Siti</p>
+                </div>
+            </div>
+            </div>
+    </section>
 
     <div id="ketuaModal" class="modal">
         <div class="modal-content">
-            <span class="close-button" id="closeModal">&times;</span>
+            <span class="close-button" id="closeModal"><i class="fas fa-times"></i></span>
             
             <div class="modal-image-container">
-                <img src="WhatsApp.jpeg" alt="Ketua OPREC 24" class="modal-image">
+                <img id="modalKetuaImage" src="https://picsum.photos/id/60/700/800" alt="Ketua OPREC 24" class="modal-image">
                 <div class="modal-info">
                     <p class="role">Ketua OPREC 24</p>
-                    <p class="name">Dude</p>
+                    <p class="name" id="modalKetuaName">Dude</p>
                 </div>
             </div>
 
             <button class="instagram-button">
-                <img src="WhatsApp.jpeg" alt="Instagram Icon" class="insta-icon">
+                <i class="fab fa-instagram insta-icon"></i>
                 Follow on Instagram
             </button>
         </div>
