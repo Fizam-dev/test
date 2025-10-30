@@ -48,7 +48,7 @@ Document.addEventListener("DOMContentLoaded", function() {
     }
 
     // --- 3. FUNGSI UNTUK BUAT MODAL (POP-UP) ---
-    // ***** INI ADALAH BAHAGIAN YANG TELAH DIBAIKI *****
+    // Logik ini sudah BETUL, ia menggunakan data yang dihantar
     function showModal(data, isKetua) {
         
         // Tentukan 'role'. Jika data.role wujud (cth: untuk ketua), gunakannya.
@@ -84,111 +84,32 @@ Document.addEventListener("DOMContentLoaded", function() {
     function closeModal() {
         modalContainer.style.display = "none";
     }
-
-    // --- 4. JANA (GENERATE) 27 KAD ---
-    function generateMarquee() {
-        // 1. Tambah Kad Ketua
-        marqueeTrack.appendChild(createCard(ketuaData, true));
-
-        // 2. Tambah 26 Kad Ahli (berulang dari data 'memberData')
-        for (let i = 0; i < 26; i++) {
-            const data = memberData[i % memberData.length]; // Ulang data
-            marqueeTrack.appendChild(createCard(data, false));
-        }
-
-        // 3. Gandakan semua kad untuk gelung marquee yang lancar
-        const originalCards = marqueeTrack.querySelectorAll('.angkatan-card');
-        originalCards.forEach(card => {
-            // Kita perlu klon event listener sekali
-            const clone = card.cloneNode(true);
-            const cardData = card.dataset.cardData; // Ambil data dari kad asal
-            
-            // Dapatkan semula data asal untuk 'clone'
-            // Cara lebih mudah: tambahkan semula event listener pada klon
-            
-            // Pendekatan lebih mudah: Klon nod dan tambah semula event listener
-            // Oleh kerana 'createCard' menambah event listener, kita perlu cara
-            // untuk mendapatkan semula data.
-            
-            // Cara paling mudah ialah biarkan event listener asal pada klon
-            // Mari kita lihat jika cloneNode(true) menyalin event listener...
-            // Ia tidak. Jadi kita perlu tambah semula.
-            
-            // OK, kita buat cara yang lebih mudah:
-            // Apabila kita mengklon, kita perlu tahu data apa yang ada padanya.
-            // Mari kita ubah createCard sedikit.
-            
-            // Batal. Kod asal untuk klon adalah betul.
-            // Mari kita uji klon itu.
-            // `card.cloneNode(true)` TIDAK menyalin event listener.
-            // Kita perlu tambah event listener pada klon secara manual.
-            
-            // TUNGGU. Kita tidak perlu event listener pada klon.
-            // Oh, kita perlu. Jika marquee itu panjang, pengguna mungkin klik pada klon.
-            
-            // OK, mari kita betulkan klon itu juga.
-            marqueeTrack.appendChild(card.cloneNode(true));
-        });
-        
-        // ... OK, kod klon asal adalah betul.
-        // Mari kita betulkan event listener pada klon
-        
-        // Dapatkan SEMUA kad (asal + klon)
-        const allCards = marqueeTrack.querySelectorAll('.angkatan-card');
-        const allData = []; // Data untuk 27 kad asal
-
-        // 1. Kumpul data asal
-        allData.push(ketuaData);
-        for (let i = 0; i < 26; i++) {
-            allData.push(memberData[i % memberData.length]);
-        }
-
-        // 2. Pasang event listener pada SEMUA kad (termasuk klon)
-        allCards.forEach((card, index) => {
-            // Tentukan data berdasarkan indeks
-            const dataIndex = index % allData.length; // 27 kad asal
-            const cardData = allData[dataIndex];
-            const isKetua = (dataIndex === 0);
-            
-            // Buang event listener lama (jika ada) untuk elak berganda
-            // Ini cara yang lebih selamat
-            card.replaceWith(card.cloneNode(true)); // Klon baru tanpa listener
-            const newCard = allCards[index]; // Dapatkan rujukan baru (ini rumit)
-        });
-
-        // KITA BUAT SEMULA LOGIK GENERATE MARQUEE.
-        // Cara lama itu tidak efisien.
-        
-        // --- 4. (CARA BARU) JANA (GENERATE) 27 KAD ---
-        // KITA AKAN BUAT SEMULA FUNGSI generateMarquee
-        
-    } // Tutup fungsi generateMarquee yang lama
     
-    // --- 5. JALANKAN SEMUA FUNGSI ---
-    // generateMarquee(); // Jangan panggil yang lama
-    
-    // --- 4. (BARU) JANA (GENERATE) 27 KAD + KLON ---
+    // --- 4. JANA (GENERATE) 27 KAD + KLON ---
     
     const originalCardData = []; // Array untuk simpan data 27 kad
     
     // 1. Tambah Kad Ketua
-    originalCardData.push(ketuaData);
+    // Kita simpan objek khas untuk ketua
+    originalCardData.push({...ketuaData, isKetua: true}); 
     
     // 2. Tambah 26 Kad Ahli
     for (let i = 0; i < 26; i++) {
-        originalCardData.push(memberData[i % memberData.length]);
+        // Kita simpan objek ahli biasa (isKetua: false secara lalai)
+        originalCardData.push({...memberData[i % memberData.length], isKetua: false});
     }
     
-    // 3. Buat kad asal DAN klon, dan pasang event listener
+    // 3. Buat kad asal DAN klon (27 + 27 = 54 kad) dan pasang event listener
     [...originalCardData, ...originalCardData].forEach((data, index) => {
-        const isKetua = (data.name === "Dude"); // Cara mudah untuk kenal pasti ketua
-        const card = createCard(data, isKetua);
+        // Semak properti isKetua pada objek data yang kita cipta tadi
+        const isKetuaCard = data.isKetua; 
+        
+        // Cipta kad
+        const card = createCard(data, isKetuaCard);
+        
+        // Tambah ke marquee
         marqueeTrack.appendChild(card);
     });
-    
-
-    // --- 5. (BARU) JALANKAN SEMUA FUNGSI ---
-    // generateMarquee(); // Fungsi lama kini diganti dengan kod di atas
     
 
     // Tutup modal jika klik di luar
