@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angkatan 24</title>
+    <style>
+        /* Tetapan Asas & Tema Hitam/Putih */
+        :root {
+            --bg-dark: #121212;
+            --text-primary: #ffffff;
+            --brand-gray: #888888;
+            --brand-gray-dark: #555555;
+            --overlay-gradient: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(80, 80, 80, 0.4), transparent);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--brand-gray);
+        }
+
+        .menu-icon {
+            font-size: 1.8rem;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        /* Tajuk Bahagian */
+        section h1 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-left: 20px;
+            margin-bottom: 25px;
+            position: relative;
+            padding-bottom: 5px;
+        }
+
+        section h1::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 50px;
+            height: 3px;
+            background-color: var(--brand-gray);
+        }
+
+        /* Marquee untuk Kad */
+        .marquee-wrapper {
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+            /* Kesan 'fade' di tepi */
+            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        }
+
+        .marquee-track {
+            display: flex;
+            width: max-content;
+            /* Durasi animasi: 216s. (27 kad * 320px lebar) / ~40px/s */
+            animation: marquee-scroll 220s linear infinite;
+        }
+
+        .marquee-wrapper:hover .marquee-track {
+            animation-play-state: paused;
+        }
+
+        @keyframes marquee-scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); } /* Tepat separuh (kerana JS gandakan trek) */
+        }
+
+        /* Gaya Kad (Seperti Gambar 1) */
+        .angkatan-card {
+            width: 85vw; /* Lebar untuk mobile */
+            max-width: 340px; /* Lebar maksima */
+            height: 60vh;
+            max-height: 500px;
+            margin: 0 10px;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .angkatan-card:hover {
+            transform: scale(1.02);
+        }
+
+        /* Overlay Kelabu Transparent (Shadow Effect) */
+        .card-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Gradient kelabu transparent seperti shadow */
+            background: var(--overlay-gradient);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Teks Menegak */
+        .overlay-text {
+            color: white;
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: 6px; /* Jarak antara huruf */
+            writing-mode: vertical-lr; /* Teks menegak */
+            text-orientation: upright;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .arrow-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 1.5rem;
+            opacity: 0.7;
+            animation: bounce 1.5s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translate(-50%, 0); }
+            40% { transform: translate(-50%, -10px); }
+            60% { transform: translate(-50%, -5px); }
+        }
+
+        /* Indikator Dots */
+        .dots-indicator {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .dot { height: 8px; width: 8px; background-color: #555; border-radius: 50%; margin: 0 5px; }
+        .dot.active { background-color: var(--brand-gray); width: 25px; border-radius: 4px; }
+
+        /* Modal (Pop-up - Seperti Gambar 3) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.9);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: #1a1a1a; /* Latar belakang pop-up */
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            /* Diletakkan di tengah */
+            margin: 10vh auto; 
+        }
+
+        /* Butang X */
+        .close-button {
+            color: white;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 10;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s ease;
+        }
+        .close-button:hover {
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        .modal-image-container {
+            height: 60vh;
+            max-height: 500px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .modal-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(to top, rgba(26, 26, 26, 1), rgba(26, 26, 26, 0.8), transparent);
+            box-sizing: border-box;
+        }
+
+        .modal-info .role {
+            font-size: 1rem;
+            color: var(--brand-gray);
+            font-weight: 500;
+        }
+
+        .modal-info .name {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin: 5px 0 0 0;
+            color: var(--text-primary);
+        }
+
+        .social-button {
+            width: calc(100% - 40px);
+            margin: 20px;
+            padding: 15px;
+            background-color: var(--brand-gray);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+        .social-button .fab {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        .social-button:hover {
+            background-color: var(--brand-gray-dark);
+            transform: translateY(-2px);
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo">24</div>
+        <div class="menu-icon"><i class="fas fa-bars"></i></div>
+    </header>
+
+    <section class="ketua-angkatan">
+        <h1>Ketua Angkatan</h1>
+        <div class="marquee-wrapper">
+            <div class="marquee-track"></div>
+        </div>
+        
+        <div class="dots-indicator">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+        </div>
+    </section>
+
+    <section class="member-section">
+        <h2>Member</h2>
+    </section>
+
+    <div id="ketuaModal" class="modal"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // --- 1. DATA UNTUK 27 AHLI ---
+            const allMembers = [
+                // Ketua (1 orang)
+                {
+                    name: "Fizam",
+                    role: "Ketua Angkatan",
+                    img: "https://plus.unsplash.com/premium_photo-1671656333460-79346b4f8e3f?w=500&q=60",
+                    verticalText: "Z A M",
+                    instagramUrl: "https://instagram.com/fizam",
+                    buttonText: "Ikuti Saya di Instagram"
+                },
+                // Ahli lain (26 orang)
+                {
+                    name: "Ahmad",
+                    role: "Timbalan Ketua",
+                    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=60",
+                    verticalText: "A H M A D",
+                    instagramUrl: "https://instagram.com/ahmad",
+                    buttonText: "Jom Follow IG Saya"
+                },
+                {
+                    name: "Siti",
+                    role: "Setiausaha",
+                    img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500&q=60",
+                    verticalText: "S I T I",
+                    instagramUrl: "https://instagram.com/siti",
+                    buttonText: "Lihat Instagram Saya"
+                },
+                {
+                    name: "Ali",
+                    role: "Bendahari",
+                    img: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&q=60",
+                    verticalText: "A L I",
+                    instagramUrl: "https://instagram.com/ali",
+                    buttonText: "Follow IG Saya"
+                },
+                {
+                    name: "Muthu",
+                    role: "AJK Program",
+                    img: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=500&q=60",
+                    verticalText: "M U T H U",
+                    instagramUrl: "https://instagram.com/muthu",
+                    buttonText: "Jom Follow Saya"
+                },
+                {
+                    name: "Mei Ling",
+                    role: "AJK Multimedia",
+                    img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=500&q=60",
+                    verticalText: "M E I L I N G",
+                    instagramUrl: "https://instagram.com/meiling",
+                    buttonText: "Instagram Saya"
+                },
+                {
+                    name: "Ravi",
+                    role: "AJK Sukan",
+                    img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=60",
+                    verticalText: "R A V I",
+                    instagramUrl: "https://instagram.com/ravi",
+                    buttonText: "Follow Saya di IG"
+                },
+                {
+                    name: "Sarah",
+                    role: "AJK Kebajikan",
+                    img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=500&q=60",
+                    verticalText: "S A R A H",
+                    instagramUrl: "https://instagram.com/sarah",
+                    buttonText: "Jom Lihat IG Saya"
+                },
+                {
+                    name: "Hakim",
+                    role: "AJK Disiplin",
+                    img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=500&q=60",
+                    verticalText: "H A K I M",
+                    instagramUrl: "https://instagram.com/hakim",
+                    buttonText: "Ikuti Instagram Saya"
+                },
+                {
+                    name: "Nadia",
+                    role: "AJK Akademik",
+                    img: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=500&q=60",
+                    verticalText: "N A D I A",
+                    instagramUrl: "https://instagram.com/nadia",
+                    buttonText: "Jom Follow IG"
+                },
+                {
+                    name: "Rizuan",
+                    role: "AJK Teknikal",
+                    img: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=500&q=60",
+                    verticalText: "R I Z U A N",
+                    instagramUrl: "https://instagram.com/rizuan",
+                    buttonText: "Lihat Instagram"
+                },
+                {
+                    name: "Farah",
+                    role: "AJK Publisiti",
+                    img: "https://images.unsplash.com/photo-1534751516642-a1af1ef26a56?w=500&q=60",
+                    verticalText: "F A R A H",
+                    instagramUrl: "https://instagram.com/farah",
+                    buttonText: "Follow Instagram Saya"
+                },
+                {
+                    name: "Hafiz",
+                    role: "AJK Dokumentasi",
+                    img: "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=500&q=60",
+                    verticalText: "H A F I Z",
+                    instagramUrl: "https://instagram.com/hafiz",
+                    buttonText: "Jom Follow IG Saya"
+                },
+                {
+                    name: "Aina",
+                    role: "AJK Kerohanian",
+                    img: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=500&q=60",
+                    verticalText: "A I N A",
+                    instagramUrl: "https://instagram.com/aina",
+                    buttonText: "Ikuti Saya di IG"
+                },
+                {
+                    name: "Zul",
+                    role: "AJK Keselamatan",
+                    img: "https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=500&q=60",
+                    verticalText: "Z U L",
+                    instagramUrl: "https://instagram.com/zul",
+                    buttonText: "Lihat IG Saya"
+                },
+                {
+                    name: "Iman",
+                    role: "AJK Hubungan Luar",
+                    img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&q=60",
+                    verticalText: "I M A N",
+                    instagramUrl: "https://instagram.com/iman",
+                    buttonText: "Follow Instagram"
+                },
+                {
+                    name: "Syafiq",
+                    role: "AJK ICT",
+                    img: "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?w=500&q=60",
+                    verticalText: "S Y A F I Q",
+                    instagramUrl: "https://instagram.com/syafiq",
+                    buttonText: "Jom Follow Saya"
+                },
+                {
+                    name: "Liyana",
+                    role: "AJK Kreatif",
+                    img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&q=60",
+                    verticalText: "L I Y A N A",
+                    instagramUrl: "https://instagram.com/liyana",
+                    buttonText: "Ikuti IG Saya"
+                },
+                {
+                    name: "Amir",
+                    role: "AJK Logistik",
+                    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=60",
+                    verticalText: "A M I R",
+                    instagramUrl: "https://instagram.com/amir",
+                    buttonText: "Lihat Instagram Saya"
+                },
+                {
+                    name: "Nurul",
+                    role: "AJK Protokol",
+                    img: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=500&q=60",
+                    verticalText: "N U R U L",
+                    instagramUrl: "https://instagram.com/nurul",
+                    buttonText: "Follow Saya di Instagram"
+                },
+                {
+                    name: "Rashid",
+                    role: "AJK Sumber Manusia",
+                    img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=500&q=60",
+                    verticalText: "R A S H I D",
+                    instagramUrl: "https://instagram.com/rashid",
+                    buttonText: "Jom Follow IG Saya"
+                },
+                {
+                    name: "Zara",
+                    role: "AJK Kebudayaan",
+                    img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=500&q=60",
+                    verticalText: "Z A R A",
+                    instagramUrl: "https://instagram.com/zara",
+                    buttonText: "Ikuti Instagram"
+                },
+                {
+                    name: "Haziq",
+                    role: "AJK Penyelidikan",
+                    img: "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?w=500&q=60",
+                    verticalText: "H A Z I Q",
+                    instagramUrl: "https://instagram.com/haziq",
+                    buttonText: "Lihat IG Saya"
+                },
+                {
+                    name: "Maya",
+                    role: "AJK Kualiti",
+                    img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=500&q=60",
+                    verticalText: "M A Y A",
+                    instagramUrl: "https://instagram.com/maya",
+                    buttonText: "Follow Instagram Saya"
+                },
+                {
+                    name: "Firdaus",
+                    role: "AJK Pembangunan",
+                    img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=60",
+                    verticalText: "F I R D A U S",
+                    instagramUrl: "https://instagram.com/firdaus",
+                    buttonText: "Jom Follow Saya"
+                },
+                {
+                    name: "Diana",
+                    role: "AJK Alumni",
+                    img: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=500&q=60",
+                    verticalText: "D I A N A",
+                    instagramUrl: "https://instagram.com/diana",
+                    buttonText: "Ikuti Saya di Instagram"
+                },
+                {
+                    name: "Kamal",
+                    role: "AJK Perhubungan",
+                    img: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=500&q=60",
+                    verticalText: "K A M A L",
+                    instagramUrl: "https://instagram.com/kamal",
+                    buttonText: "Lihat Instagram Saya"
+                }
+            ];
+
+            const marqueeTrack = document.querySelector('.marquee-track');
+            const modalContainer = document.getElementById('ketuaModal');
+
+            // --- 2. FUNGSI UNTUK BUAT KAD ---
+            function createCard(data, isKetua = false) {
+                const card = document.createElement('div');
+                card.className = 'angkatan-card';
+                card.style.backgroundImage = `url(${data.img})`;
+
+                // Teks menegak untuk nama
+                let verticalText = data.verticalText || data.name.split('').join(' '); // Cth: "ALI" -> "A L I"
+
+                card.innerHTML = `
+                    <div class="card-overlay">
+                        <div class="overlay-text">${verticalText}</div>
+                    </div>
+                    ${isKetua ? '<div class="arrow-indicator"><i class="fas fa-chevron-down"></i></div>' : ''}
+                `;
+
+                // Tambah 'click listener' pada setiap kad
+                card.addEventListener('click', () => {
+                    showModal(data, isKetua); // Hantar data kad yang diklik
+                });
+
+                return card;
+            }
+
+            // --- 3. FUNGSI UNTUK BUAT MODAL (POP-UP) ---
+            function showModal(data, isKetua) {
+                // Hasilkan HTML modal menggunakan 'data' yang betul dari kad yang diklik
+                modalContainer.innerHTML = `
+                    <div class="modal-content">
+                        <span class="close-button" id="closeModal"><i class="fas fa-times"></i></span>
+                        
+                        <div class="modal-image-container" style="background-image: url(${data.img});">
+                            <div class="modal-info">
+                                <p class="role">${data.role}</p>
+                                <p class="name">${data.name}</p>
+                            </div>
+                        </div>
+
+                        <button class="social-button" onclick="window.open('${data.instagramUrl}', '_blank')">
+                            <i class="fab fa-instagram"></i>
+                            ${data.buttonText || 'Follow on Instagram'}
+                        </button>
+                    </div>
+                `;
+                
+                // Paparkan modal
+                modalContainer.style.display = "block";
+
+                // Tambah event listener untuk butang 'x' yang BARU dibuat
+                document.getElementById('closeModal').onclick = closeModal;
+            }
+
+            function closeModal() {
+                modalContainer.style.display = "none";
+            }
+            
+            // --- 4. JANA (GENERATE) 27 KAD + KLON ---
+            
+            const originalCardData = []; // Array untuk simpan data 27 kad
+            
+            // 1. Tambah semua ahli (27 orang)
+            allMembers.forEach((member, index) => {
+                // Ahli pertama adalah ketua
+                const isKetua = index === 0;
+                originalCardData.push({...member, isKetua});
+            });
+            
+            // 2. Buat kad asal DAN klon (27 + 27 = 54 kad) dan pasang event listener
+            [...originalCardData, ...originalCardData].forEach((data, index) => {
+                // Cipta kad
+                const card = createCard(data, data.isKetua);
+                
+                // Tambah ke marquee
+                marqueeTrack.appendChild(card);
+            });
+
+            // Tutup modal jika klik di luar
+            window.onclick = function(event) {
+                if (event.target === modalContainer) {
+                    closeModal();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
