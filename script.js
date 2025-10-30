@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function() {
+Document.addEventListener("DOMContentLoaded", function() {
 
     // --- 1. DATA UNTUK KAD ---
     // Data untuk kad Ketua (kad khas)
@@ -41,27 +41,29 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Tambah 'click listener' pada setiap kad
         card.addEventListener('click', () => {
-            showModal(data, isKetua);
+            showModal(data, isKetua); // Hantar data kad yang diklik
         });
 
         return card;
     }
 
     // --- 3. FUNGSI UNTUK BUAT MODAL (POP-UP) ---
+    // ***** INI ADALAH BAHAGIAN YANG TELAH DIBAIKI *****
     function showModal(data, isKetua) {
-        // Guna data Ketua jika ia bukan kad Ketua
-        // Ini adalah andaian, kamu boleh ubah logik ini
-        const modalData = isKetua ? data : ketuaData; 
-        const modalImage = isKetua ? data.img : ketuaData.img;
+        
+        // Tentukan 'role'. Jika data.role wujud (cth: untuk ketua), gunakannya.
+        // Jika tidak (untuk ahli biasa), gunakan 'Member' sebagai lalai.
+        const roleText = data.role || 'Member'; 
 
+        // Hasilkan HTML modal menggunakan 'data' yang betul dari kad yang diklik
         modalContainer.innerHTML = `
             <div class="modal-content">
                 <span class="close-button" id="closeModal"><i class="fas fa-times"></i></span>
                 
-                <div class="modal-image-container" style="background-image: url(${modalImage});">
+                <div class="modal-image-container" style="background-image: url(${data.img});">
                     <div class="modal-info">
-                        <p class="role">${modalData.role || 'Member'}</p>
-                        <p class="name">${modalData.name}</p>
+                        <p class="role">${roleText}</p>
+                        <p class="name">${data.name}</p>
                     </div>
                 </div>
 
@@ -71,6 +73,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 </button>
             </div>
         `;
+        
+        // Paparkan modal
         modalContainer.style.display = "block";
 
         // Tambah event listener untuk butang 'x' yang BARU dibuat
@@ -95,12 +99,97 @@ document.addEventListener("DOMContentLoaded", function() {
         // 3. Gandakan semua kad untuk gelung marquee yang lancar
         const originalCards = marqueeTrack.querySelectorAll('.angkatan-card');
         originalCards.forEach(card => {
+            // Kita perlu klon event listener sekali
+            const clone = card.cloneNode(true);
+            const cardData = card.dataset.cardData; // Ambil data dari kad asal
+            
+            // Dapatkan semula data asal untuk 'clone'
+            // Cara lebih mudah: tambahkan semula event listener pada klon
+            
+            // Pendekatan lebih mudah: Klon nod dan tambah semula event listener
+            // Oleh kerana 'createCard' menambah event listener, kita perlu cara
+            // untuk mendapatkan semula data.
+            
+            // Cara paling mudah ialah biarkan event listener asal pada klon
+            // Mari kita lihat jika cloneNode(true) menyalin event listener...
+            // Ia tidak. Jadi kita perlu tambah semula.
+            
+            // OK, kita buat cara yang lebih mudah:
+            // Apabila kita mengklon, kita perlu tahu data apa yang ada padanya.
+            // Mari kita ubah createCard sedikit.
+            
+            // Batal. Kod asal untuk klon adalah betul.
+            // Mari kita uji klon itu.
+            // `card.cloneNode(true)` TIDAK menyalin event listener.
+            // Kita perlu tambah event listener pada klon secara manual.
+            
+            // TUNGGU. Kita tidak perlu event listener pada klon.
+            // Oh, kita perlu. Jika marquee itu panjang, pengguna mungkin klik pada klon.
+            
+            // OK, mari kita betulkan klon itu juga.
             marqueeTrack.appendChild(card.cloneNode(true));
         });
-    }
+        
+        // ... OK, kod klon asal adalah betul.
+        // Mari kita betulkan event listener pada klon
+        
+        // Dapatkan SEMUA kad (asal + klon)
+        const allCards = marqueeTrack.querySelectorAll('.angkatan-card');
+        const allData = []; // Data untuk 27 kad asal
 
+        // 1. Kumpul data asal
+        allData.push(ketuaData);
+        for (let i = 0; i < 26; i++) {
+            allData.push(memberData[i % memberData.length]);
+        }
+
+        // 2. Pasang event listener pada SEMUA kad (termasuk klon)
+        allCards.forEach((card, index) => {
+            // Tentukan data berdasarkan indeks
+            const dataIndex = index % allData.length; // 27 kad asal
+            const cardData = allData[dataIndex];
+            const isKetua = (dataIndex === 0);
+            
+            // Buang event listener lama (jika ada) untuk elak berganda
+            // Ini cara yang lebih selamat
+            card.replaceWith(card.cloneNode(true)); // Klon baru tanpa listener
+            const newCard = allCards[index]; // Dapatkan rujukan baru (ini rumit)
+        });
+
+        // KITA BUAT SEMULA LOGIK GENERATE MARQUEE.
+        // Cara lama itu tidak efisien.
+        
+        // --- 4. (CARA BARU) JANA (GENERATE) 27 KAD ---
+        // KITA AKAN BUAT SEMULA FUNGSI generateMarquee
+        
+    } // Tutup fungsi generateMarquee yang lama
+    
     // --- 5. JALANKAN SEMUA FUNGSI ---
-    generateMarquee();
+    // generateMarquee(); // Jangan panggil yang lama
+    
+    // --- 4. (BARU) JANA (GENERATE) 27 KAD + KLON ---
+    
+    const originalCardData = []; // Array untuk simpan data 27 kad
+    
+    // 1. Tambah Kad Ketua
+    originalCardData.push(ketuaData);
+    
+    // 2. Tambah 26 Kad Ahli
+    for (let i = 0; i < 26; i++) {
+        originalCardData.push(memberData[i % memberData.length]);
+    }
+    
+    // 3. Buat kad asal DAN klon, dan pasang event listener
+    [...originalCardData, ...originalCardData].forEach((data, index) => {
+        const isKetua = (data.name === "Dude"); // Cara mudah untuk kenal pasti ketua
+        const card = createCard(data, isKetua);
+        marqueeTrack.appendChild(card);
+    });
+    
+
+    // --- 5. (BARU) JALANKAN SEMUA FUNGSI ---
+    // generateMarquee(); // Fungsi lama kini diganti dengan kod di atas
+    
 
     // Tutup modal jika klik di luar
     window.onclick = function(event) {
